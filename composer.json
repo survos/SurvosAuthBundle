@@ -12,12 +12,15 @@
     "require": {
         "php": "^8.1",
         "doctrine/orm": "^2.13",
+        "knpuniversity/oauth2-client-bundle": "^2.10",
         "symfony/config": "^6.1",
         "symfony/console": "^6.1",
         "symfony/dependency-injection": "^6.1",
         "symfony/http-kernel": "^6.1",
+        "symfony/options-resolver": "^6.1",
         "symfony/password-hasher": "^6.1",
         "symfony/security-bundle": "^6.1",
+        "symfony/yaml": "^6.1",
         "twig/twig": "^3.4"
     },
     "autoload": {
@@ -29,5 +32,8 @@
         "symfony": {
             "require": "^6.1"
         }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.8"
     }
 }

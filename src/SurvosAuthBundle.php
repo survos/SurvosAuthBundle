@@ -3,8 +3,9 @@
 namespace Survos\AuthBundle;
 
 use Survos\AuthBundle\Command\UserCreateCommand;
+use Survos\AuthBundle\Controller\OAuthController;
+use Survos\AuthBundle\Services\BaseService;
 use Survos\AuthBundle\Twig\TwigExtension;
-use Survos\WorkflowBundle\Command\SurvosWorkflowDumpCommand;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -20,6 +21,17 @@ class SurvosAuthBundle extends AbstractBundle
     /** @param array<mixed> $config */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        $serviceId = 'survos_auth.base_service';
+        $container->services()->alias(BaseService::class, $serviceId);
+        $builder->autowire($serviceId, BaseService::class)
+            ->setArgument('$userClass', $config['user_class'])
+            ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
+            ->setArgument('$config', $config)
+//            ->setArgument('$registry', new Reference('doctrine'))
+//            ->setArgument('$provider', new Reference('security.user_providers'))
+            ->setPublic(true)
+            ;
+
         $definition = $builder
             ->autowire('survos.auth_twig', TwigExtension::class)
             ->addTag('twig.extension');
@@ -34,6 +46,24 @@ class SurvosAuthBundle extends AbstractBundle
             ->addTag('console.command')
         ;
 
+        $definition = $builder->autowire(OAuthController::class)
+            ->setArgument('$baseService', new Reference($serviceId))
+            ->setArgument('$registry', new Reference('doctrine'))
+            ->setArgument('$router', new Reference('router'))
+            ->setArgument('$userClass', $config['user_class'])
+            ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
+            ->addTag('container.service_subscriber')
+            ->addTag('controller.service_argument')
+            ->setPublic(true);
+
+        if ($userProviderServiceId = $config['user_provider']) {
+            $definition
+                ->addMethodCall('setUserProvider', [new Reference($userProviderServiceId)])
+            ;
+
+        }
+
+
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -41,8 +71,8 @@ class SurvosAuthBundle extends AbstractBundle
         // since the configuration is short, we can add it here
         $definition->rootNode()
             ->children()
-            ->scalarNode('seed')->defaultValue(null)->end()
-            ->scalarNode('function_prefix')->defaultValue('')->end()
+            ->scalarNode('user_provider')->defaultValue(null)->end()
+            ->scalarNode('user_class')->defaultValue("App\\Entity\\User")->end()
             ->end();
         ;
     }
