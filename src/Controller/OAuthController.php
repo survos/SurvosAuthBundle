@@ -9,7 +9,7 @@ use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationExc
 use Doctrine\ORM\EntityManagerInterface;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
-use Survos\AuthBundle\BaseService;
+use Survos\AuthBundle\Services\BaseService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mailer\MailerInterface;
@@ -54,7 +54,7 @@ class OAuthController extends AbstractController
 
     public function socialMediaButtons($style = '')
     {
-        return $this->render('@SurvosBase/_social_media_login_buttons.html.twig', [
+        return $this->render('@SurvosAuth/_social_media_login_buttons.html.twig', [
             'clientKeys' => $this->clientRegistry->getEnabledClientKeys(),
             'clientRegistry' => $this->clientRegistry,
             'style' => $style
@@ -81,7 +81,7 @@ class OAuthController extends AbstractController
 
         // throw new \Exception($provider['class'], class_exists($provider['class']));
 
-        return $this->render('@SurvosBase/oauth/provider.html.twig', [
+        return $this->render('@SurvosAuth/oauth/provider.html.twig', [
             'provider' => $provider,
             'package' => $package,
             'classExists' => class_exists($provider['class'])
@@ -89,10 +89,8 @@ class OAuthController extends AbstractController
 
     }
 
-    /**
-     * @Route("/providers", name="oauth_providers")
-     */
-    public function index(Request $request)
+    #[Route("/providers", name: "oauth_providers")]
+    public function providers(Request $request)
     {
 
         $oauthClients = $this->baseService->getOauthClients();
@@ -105,7 +103,7 @@ class OAuthController extends AbstractController
         // could move the array_map into the service call
         $clients = $this->baseService->getCombinedOauthData();
 
-        return $this->render('@SurvosBase/oauth/providers.html.twig', [
+        return $this->render('@SurvosAuth/oauth/providers.html.twig', [
             'clients' => $clients,
             /*
             'clientKeys' =>  $clientRegistry->getEnabledClientKeys(),

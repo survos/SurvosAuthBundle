@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing
+        https://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="x" path="/edit/{collection?}/{scope?}/{section?}"
+           controller="tzunghaor_settings.editor_controller::edit">
+    </route>
+
+    <route id="oauth_providers" path="/oauth_providers"
+           controller="survos.auth.oauth_controller::providers">
+    </route>
+</routes>

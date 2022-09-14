@@ -12,4 +12,9 @@ return function (RoutingConfigurator $routes) {
     $routes->add('survos_auth', '/auth')
         ->controller('survos.auth.oauth_controller')
     ;
+    $routes->add('oauth_providers', '/oauth_providers')
+        ->controller('survos.auth.oauth_controller::providers')
+
+    ;
+
 };
