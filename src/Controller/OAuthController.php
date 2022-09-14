@@ -9,7 +9,7 @@ use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationExc
 use Doctrine\ORM\EntityManagerInterface;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
-use Survos\AuthBundle\Services\BaseService;
+use Survos\AuthBundle\Services\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mailer\MailerInterface;
@@ -35,11 +35,11 @@ class OAuthController extends AbstractController
 
     private ?UserProviderInterface  $userProvider = null;
     private ?EntityManagerInterface $entityManager;
-    public function __construct(private BaseService     $baseService,
+    public function __construct(private AuthService     $baseService,
                                 private Registry        $registry,
                                 private RouterInterface $router,
                                 private ClientRegistry  $clientRegistry,
-    private string $userClass,
+    private string                                      $userClass,
 
     )
     {
@@ -212,7 +212,7 @@ class OAuthController extends AbstractController
 //        if ($user = $em->getRepository(User::class)->findOneBy(['email' => $email])) {
 // after validating the user and saving them to the database
         // authenticate the user and use onAuthenticationSuccess on the authenticator
-        // if it's already in there, update the token.  This also happens with registration, so maybe belongs in BaseService?
+        // if it's already in there, update the token.  This also happens with registration, so maybe belongs in AuthService?
         if ($user->getUserIdentifier()) {
             switch ($clientKey) {
                 case 'github':

@@ -11,4 +11,9 @@
     <route id="oauth_providers" path="/oauth_providers"
            controller="survos.auth.oauth_controller::providers">
     </route>
+
+    <route id="oauth_connect_start" path="/oauth_connect_start"
+           controller="survos.auth.oauth_controller::oauth_connect_start">
+    </route>
+
 </routes>

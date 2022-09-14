@@ -4,7 +4,7 @@ namespace Survos\AuthBundle;
 
 use Survos\AuthBundle\Command\UserCreateCommand;
 use Survos\AuthBundle\Controller\OAuthController;
-use Survos\AuthBundle\Services\BaseService;
+use Survos\AuthBundle\Services\AuthService;
 use Survos\AuthBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -22,8 +22,8 @@ class SurvosAuthBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $serviceId = 'survos_auth.base_service';
-        $container->services()->alias(BaseService::class, $serviceId);
-        $builder->autowire($serviceId, BaseService::class)
+        $container->services()->alias(AuthService::class, $serviceId);
+        $builder->autowire($serviceId, AuthService::class)
             ->setArgument('$userClass', $config['user_class'])
             ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
             ->setArgument('$config', $config)

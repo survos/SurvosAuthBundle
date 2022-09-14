@@ -7,7 +7,7 @@ use KnpU\OAuth2ClientBundle\DependencyInjection\ProviderFactory;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Yaml\Yaml;
 
-class BaseService
+class AuthService
 {
 
     public function __construct(
@@ -95,8 +95,8 @@ class BaseService
 
     // the data from KNPU's list of providers plus the urls to link to for configurating.
     // written by survos:fetch-oauth-providers,
-    // when read by BaseService::authProviderData.  Does NOT include project-specific data
-    // when read by BaseService->authProviderConfigurationData.  Does include project-specific data (needs ClientRegistry)
+    // when read by AuthService::authProviderData.  Does NOT include project-specific data
+    // when read by AuthService->authProviderConfigurationData.  Does include project-specific data (needs ClientRegistry)
     protected static function getOAuthProviderCombinedPath(): string
     {
         return __DIR__ . '/../data/oauth_provider.yaml';
