@@ -16,5 +16,4 @@ return function (RoutingConfigurator $routes) {
         ->controller('survos.auth.oauth_controller::providers')
 
     ;
-
 };

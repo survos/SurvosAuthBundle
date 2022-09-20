@@ -9,17 +9,15 @@ use Symfony\Component\Yaml\Yaml;
 
 class AuthService
 {
-
     public function __construct(
         private string $userClass,
         private array $config,
         private ClientRegistry $clientRegistry,
-//        private ProviderFactory $provider
-)
-    {
-//        $this->clientRegistry = $clientRegistry;
-//        $this->provider = $provider;
-//        $this->userClass = $userClass;
+        //        private ProviderFactory $provider
+    ) {
+        //        $this->clientRegistry = $clientRegistry;
+        //        $this->provider = $provider;
+        //        $this->userClass = $userClass;
     }
 
     public function allowLogin(): bool
@@ -32,12 +30,14 @@ class AuthService
         return $this->userClass;
     }
 
-    public function getOauthClientKeys(): ?array {
+    public function getOauthClientKeys(): ?array
+    {
         return $this->clientRegistry?->getEnabledClientKeys();
     }
 
     // hack to get client id
-    private function accessProtected($obj, $prop) {
+    private function accessProtected($obj, $prop)
+    {
         $reflection = new \ReflectionClass($obj);
         // dump($obj, $prop);
         try {
@@ -50,7 +50,8 @@ class AuthService
         }
     }
 
-    public function getOauthClients($all = false): array {
+    public function getOauthClients($all = false): array
+    {
         // links to accont info
         $providers = $this->getOAuthProviderUrls();
 
@@ -59,12 +60,11 @@ class AuthService
 
         $keys = $this->clientRegistry->getEnabledClientKeys();
 
-
         return array_combine($keys, array_map(function ($key) use ($providers) {
-                $client = $this->clientRegistry->getClient($key);
-                $provider = $providers[$key];
-                $clientId = $this->accessProtected($client->getOAuth2Provider(), 'clientId');
-                $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
+            $client = $this->clientRegistry->getClient($key);
+            $provider = $providers[$key];
+            $clientId = $this->accessProtected($client->getOAuth2Provider(), 'clientId');
+            $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
             try {
             } catch (\Exception $e) {
                 $client = false;
@@ -78,14 +78,13 @@ class AuthService
                 'appId' => $clientId,
                 // 'type' => $type
             ];
-        }, $keys) );
+        }, $keys));
     }
 
     public function getClientRegistry(): ClientRegistry
     {
         return $this->clientRegistry;
     }
-
 
     // the hand-curated list of URLs.  Written by hand
     protected static function getOAuthProviderUrlPath(): string
@@ -104,12 +103,18 @@ class AuthService
 
     public function writeCombinedOauthData($data)
     {
-        file_put_contents($fn = self::getOAuthProviderCombinedPath(),
-            sprintf("#  automatically recreated, merges data from knp oauth client bundle  and %s\n\n%s",
-                self::getOAuthProviderUrlPath(), Yaml::dump(['providers' => $data], 3, 4, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK)) );
+        file_put_contents(
+            $fn = self::getOAuthProviderCombinedPath(),
+            sprintf(
+                "#  automatically recreated, merges data from knp oauth client bundle  and %s\n\n%s",
+                self::getOAuthProviderUrlPath(),
+                Yaml::dump([
+                    'providers' => $data,
+                ], 3, 4, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK)
+            )
+        );
 
         return $fn;
-
     }
 
     // returns array of providers, by key.  Includes a 'clients' key with configured clients
@@ -156,7 +161,6 @@ class AuthService
 
             $providers[$key] = $provider;
             // throw new \Exception($provider, $classToTypeMap);
-
         }
         /* not sure why this doesn't work
         array_walk(array_keys($providers), function ($key) use ($providers, $resolver) {
@@ -176,12 +180,12 @@ class AuthService
             $providerClass = get_class($clientProvider);
 
             $type = $classToTypeMap[$class];
-            if (!key_exists($type, $providers)) {
+            if (! key_exists($type, $providers)) {
                 throw new \Exception("Missing $type ($class) in providers");
             }
             // throw new \Exception($class, $client, $clientProvider, $type, $providerClass);
 
-            $providers[$type]['clients'][$key]  = $client;
+            $providers[$type]['clients'][$key] = $client;
         }
 
         /*
@@ -200,7 +204,4 @@ class AuthService
     {
         return Yaml::parseFile(self::getOAuthProviderUrlPath())['providers'];
     }
-
-
 }
-

@@ -4,23 +4,21 @@ namespace Survos\AuthBundle\Controller;
 
 # use App\Security\AppAuthenticator;
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\ORM\EntityManagerInterface;
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\Client\OAuth2ClientInterface;
 use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationException;
-use Doctrine\ORM\EntityManagerInterface;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Survos\AuthBundle\Services\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticatorManagerInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-use Symfony\Component\Security\Http\Authentication\Provider\AuthenticationProviderInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -28,27 +26,30 @@ use Symfony\Component\Security\Guard\Authenticator\AbstractFormLoginAuthenticato
 use Symfony\Component\Security\Guard\AuthenticatorInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Guard\PasswordAuthenticatedInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticatorManagerInterface;
+use Symfony\Component\Security\Http\Authentication\Provider\AuthenticationProviderInterface;
 use Twig\Environment;
 
 class OAuthController extends AbstractController
 {
-
     private ?UserProviderInterface  $userProvider = null;
-    private ?EntityManagerInterface $entityManager;
-    public function __construct(private AuthService     $baseService,
-                                private Registry        $registry,
-                                private RouterInterface $router,
-                                private ClientRegistry  $clientRegistry,
-    private string                                      $userClass,
 
-    )
-    {
+    private ?EntityManagerInterface $entityManager;
+
+    public function __construct(
+        private AuthService $baseService,
+        private Registry $registry,
+        private RouterInterface $router,
+        private ClientRegistry $clientRegistry,
+        private string $userClass,
+    ) {
         $this->entityManager = $this->registry->getManagerForClass($this->userClass);
-//        dd($this->clientRegistry);
-//        $this->clientRegistry = $this->baseService->getClientRegistry();
+        //        dd($this->clientRegistry);
+        //        $this->clientRegistry = $this->baseService->getClientRegistry();
     }
 
-    public function setUserProvider(UserProviderInterface  $userProvider) {
+    public function setUserProvider(UserProviderInterface $userProvider)
+    {
         $this->userProvider = $userProvider;
     }
 
@@ -57,9 +58,8 @@ class OAuthController extends AbstractController
         return $this->render('@SurvosAuth/_social_media_login_buttons.html.twig', [
             'clientKeys' => $this->clientRegistry->getEnabledClientKeys(),
             'clientRegistry' => $this->clientRegistry,
-            'style' => $style
+            'style' => $style,
         ]);
-
     }
 
     #[Route("/provider/{providerKey}", name: "oauth_provider")]
@@ -70,7 +70,7 @@ class OAuthController extends AbstractController
 
         // look in composer.lock for the library
         $composer = $this->getParameter('kernel.project_dir') . '/composer.lock';
-        if (!file_exists($composer)) {
+        if (! file_exists($composer)) {
         }
 
         $packages = json_decode(file_get_contents($composer))->packages;
@@ -78,21 +78,18 @@ class OAuthController extends AbstractController
             return $provider['library'] === $package->name;
         });
 
-
         // throw new \Exception($provider['class'], class_exists($provider['class']));
 
         return $this->render('@SurvosAuth/oauth/provider.html.twig', [
             'provider' => $provider,
             'package' => $package,
-            'classExists' => class_exists($provider['class'])
+            'classExists' => class_exists($provider['class']),
         ]);
-
     }
 
     #[Route("/providers", name: "oauth_providers")]
     public function providers(Request $request)
     {
-
         $oauthClients = $this->baseService->getOauthClients();
         $clientRegistry = $this->clientRegistry;
 
@@ -126,15 +123,16 @@ class OAuthController extends AbstractController
                     "user:email", "read:user",
                 ],
                 'facebook' => ['email', 'public_profile'],
-                'google' => ['email', 'profile', 'openid']
-            ];;
+                'google' => ['email', 'profile', 'openid'],
+            ];
+        ;
         // will redirect to an external OAuth server
         $redirect = $this->clientRegistry
             ->getClient($clientKey) // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect($scopes[$clientKey] ?? [], []);
-//        dump($redirect->getTargetUrl());
+        //        dump($redirect->getTargetUrl());
         $redirect->setTargetUrl(str_replace('http%3A', 'https%3A', $redirect->getTargetUrl()));
-//         throw new \Exception($redirect);
+        //         throw new \Exception($redirect);
         return $redirect;
     }
 
@@ -144,41 +142,40 @@ class OAuthController extends AbstractController
      *
      * @Route("/connect/controller/{clientKey}", name="oauth_connect_check")
      */
-    public function connectCheckWithController(Request        $request,
-                                               string         $clientKey)
-    {
+    public function connectCheckWithController(
+        Request $request,
+        string $clientKey
+    ) {
         $route = $request->get('_route');
         $clientRegistry = $this->clientRegistry;
 
         /** @var OAuth2ClientInterface $client */
         $client = $clientRegistry->getClient($clientKey);
 
-
         // the exact class depends on which provider you're using
         /** @  var \League\OAuth2\Client\Provider\GenericProvider $user */
         $oAuthUser = $client->fetchUser();
-//            $email = $oAuthUser->getEmail();
+        //            $email = $oAuthUser->getEmail();
         $identifier = $oAuthUser->getId();
         // now presumably we need to link this up.
         $token = $oAuthUser->getId();
 
-        $email = method_exists($oAuthUser, 'getEmail') ? $oAuthUser->getEmail(): null;
+        $email = method_exists($oAuthUser, 'getEmail') ? $oAuthUser->getEmail() : null;
         assert($email);
 
-
-                try {
-            } catch (\Exception $e) {
-                $this->addFlash('error', $e->getMessage());
-                foreach ($request->query->all() as $var => $value) {
-                    $this->addFlash('warning', sprintf("%s: %s", $var, $value));
-                }
-                return $this->redirectToRoute('app_login');
+        try {
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+            foreach ($request->query->all() as $var => $value) {
+                $this->addFlash('warning', sprintf("%s: %s", $var, $value));
             }
+            return $this->redirectToRoute('app_login');
+        }
 
-            // do something with all this new power!
-            // e.g. $name = $user->getFirstName();
+        // do something with all this new power!
+        // e.g. $name = $user->getFirstName();
 //            throw new \Exception($oAuthUser); die;
-            // ...
+        // ...
 
         try {
         } catch (IdentityProviderAuthenticationException $e) {
@@ -193,20 +190,21 @@ class OAuthController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-
         // do something with all this new power!
         // e.g. $name = $user->getFirstName();
 
         // if we have it, just log them in.  If not, direct to register
 
-
         // it seems that loadUserByUsername redirects to login
         try {
             /** @var UserInterface $user */
             $user = $this->userProvider->loadUserByIdentifier($email);
-
         } catch (UserNotFoundException $exception) {
-            return new RedirectResponse($this->generateUrl('app_register', ['email' => $email, 'id' => $identifier, 'client'=>$clientKey]));
+            return new RedirectResponse($this->generateUrl('app_register', [
+                'email' => $email,
+                'id' => $identifier,
+                'client' => $clientKey,
+            ]));
         }
 
 //        if ($user = $em->getRepository(User::class)->findOneBy(['email' => $email])) {
@@ -228,15 +226,16 @@ class OAuthController extends AbstractController
                     throw new \Exception("Invalid client key: " . $clientKey);
             }
 
-//                $passport = $authentication->auth
+            //                $passport = $authentication->auth
 
 
             $this->entityManager->flush();
-            $successRedirect = $this->redirectToRoute('app_homepage', ['email' => $email]);
+            $successRedirect = $this->redirectToRoute('app_homepage', [
+                'email' => $email,
+            ]);
 
             return $successRedirect;
         }
-
 
 //            // ...
 //        } catch (IdentityProviderException $e) {
@@ -249,7 +248,7 @@ class OAuthController extends AbstractController
         return new RedirectResponse($this->generateUrl('app_register', [
             'email' => $email,
             'clientKey' => $clientKey,
-            'token' => $token
+            'token' => $token,
         ]));
     }
 
@@ -272,13 +271,14 @@ class OAuthController extends AbstractController
         // if it comes back from the guard to here,
         $user = $this->getUser();
         if ($user->getId()) {
-            $targetUrl = $this->router->generate('app_homepage', ['login' => 'success']);
+            $targetUrl = $this->router->generate('app_homepage', [
+                'login' => 'success',
+            ]);
         } else {
-            $targetUrl = $this->router->generate('app_register', ['email' => $user->getEmail()]);
+            $targetUrl = $this->router->generate('app_register', [
+                'email' => $user->getEmail(),
+            ]);
         }
         return new RedirectResponse($targetUrl);
-
     }
-
-
 }

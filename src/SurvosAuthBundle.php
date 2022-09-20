@@ -15,10 +15,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class SurvosAuthBundle extends AbstractBundle
 {
-
     protected string $extensionAlias = 'survos_auth';
 
-    /** @param array<mixed> $config */
+    /**
+     * @param array<mixed> $config
+     */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $serviceId = 'survos_auth.base_service';
@@ -30,13 +31,13 @@ class SurvosAuthBundle extends AbstractBundle
 //            ->setArgument('$registry', new Reference('doctrine'))
 //            ->setArgument('$provider', new Reference('security.user_providers'))
             ->setPublic(true)
-            ;
+        ;
 
         $definition = $builder
             ->autowire('survos.auth_twig', TwigExtension::class)
             ->addTag('twig.extension');
-//        $definition->setArgument('$seed', $config['seed']);
-//        $definition->setArgument('$prefix', $config['function_prefix']);
+        //        $definition->setArgument('$seed', $config['seed']);
+        //        $definition->setArgument('$prefix', $config['function_prefix']);
 
         $builder->autowire(UserCreateCommand::class)
             ->setArgument('$passwordEncoder', new Reference('security.user_password_hasher'))
@@ -60,10 +61,7 @@ class SurvosAuthBundle extends AbstractBundle
             $definition
                 ->addMethodCall('setUserProvider', [new Reference($userProviderServiceId)])
             ;
-
         }
-
-
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -76,5 +74,4 @@ class SurvosAuthBundle extends AbstractBundle
             ->end();
         ;
     }
-
 }
