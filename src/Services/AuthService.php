@@ -144,7 +144,7 @@ class AuthService
             if (preg_match_all('/env\(([^\)]+)\)/', $comments, $m)) {
                 $provider['env_vars'] = $m[1];
             } else {
-                die("Bad Match " . $comments);
+                assert(false, "Bad match: " . $comments);
             }
 
             $classToTypeMap[$provider['class']] = $provider['type'];
