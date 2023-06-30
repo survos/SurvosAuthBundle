@@ -32,15 +32,15 @@ use Twig\Environment;
 
 class OAuthController extends AbstractController
 {
-    private ?UserProviderInterface  $userProvider = null;
-
-    private ?EntityManagerInterface $entityManager;
+//    private ?UserProviderInterface  $userProvider = null;
 
     public function __construct(
         private AuthService $baseService,
         private Registry $registry,
         private RouterInterface $router,
         private ClientRegistry $clientRegistry,
+        private UserProviderInterface $userProvider,
+        private EntityManagerInterface $entityManager,
         private string $userClass,
     ) {
         $this->entityManager = $this->registry->getManagerForClass($this->userClass);
@@ -48,10 +48,10 @@ class OAuthController extends AbstractController
         //        $this->clientRegistry = $this->baseService->getClientRegistry();
     }
 
-    public function setUserProvider(UserProviderInterface $userProvider)
-    {
-        $this->userProvider = $userProvider;
-    }
+//    public function setUserProvider(UserProviderInterface $userProvider)
+//    {
+//        $this->userProvider = $userProvider;
+//    }
 
     public function socialMediaButtons($style = '')
     {
