@@ -50,10 +50,6 @@
         <li>{{ key }}:
 
         <a href="{{ path('oauth_connect_check', {clientKey: key}) }}">redirect</a>
-
-        {{ dump(client) }}
-        {{ dump(project) }}
-    </li>
         {% endfor %}
     </ul>
     #}
