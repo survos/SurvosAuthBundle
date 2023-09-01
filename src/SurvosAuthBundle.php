@@ -4,6 +4,7 @@ namespace Survos\AuthBundle;
 
 use Survos\AuthBundle\Command\UserCreateCommand;
 use Survos\AuthBundle\Controller\OAuthController;
+use Survos\AuthBundle\Security\Authenticator;
 use Survos\AuthBundle\Services\AuthService;
 use Survos\AuthBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -33,6 +34,14 @@ class SurvosAuthBundle extends AbstractBundle
 //            ->setArgument('$provider', new Reference('security.user_providers'))
             ->setPublic(true)
         ;
+
+
+        $definition = $builder->autowire(Authenticator::class)
+            ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
+            ->setArgument('$entityManager', new Reference('doctrine.orm.entity_manager'))
+            ->setArgument('$router', new Reference('router'));
+
+
 
         $definition = $builder
             ->autowire('survos.auth_twig', TwigExtension::class)

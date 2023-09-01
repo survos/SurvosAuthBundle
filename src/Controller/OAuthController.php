@@ -12,6 +12,7 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Survos\AuthBundle\Services\AuthService;
+use Survos\AuthBundle\Traits\OAuthIdentifiersInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -197,7 +198,7 @@ class OAuthController extends AbstractController
 
         // it seems that loadUserByUsername redirects to login
         try {
-            /** @var UserInterface $user */
+            /** @var UserInterface&OAuthIdentifiersInterface $user */
             $user = $this->userProvider->loadUserByIdentifier($email);
         } catch (UserNotFoundException $exception) {
             return new RedirectResponse($this->generateUrl('app_register', [
@@ -212,24 +213,10 @@ class OAuthController extends AbstractController
         // authenticate the user and use onAuthenticationSuccess on the authenticator
         // if it's already in there, update the token.  This also happens with registration, so maybe belongs in AuthService?
         if ($user->getUserIdentifier()) {
-            switch ($clientKey) {
-                case 'github':
-                    $user->setGithubId($token);
-                    break;
-                case 'facebook':
-                    $user->setFacebookId($token);
-                    break;
-                case 'google':
-                    $user->setGoogleId($token);
-                    break;
-                default:
-                    throw new \Exception("Invalid client key: " . $clientKey);
-            }
-
+            $user->setIdentifier($clientKey, $token);
             //                $passport = $authentication->auth
-
-
             $this->entityManager->flush();
+            // boo, we need a better redirect!
             $successRedirect = $this->redirectToRoute('app_homepage', [
                 'email' => $email,
             ]);
