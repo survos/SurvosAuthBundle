@@ -45,7 +45,7 @@ class UserCreateCommand extends Command
             ->addOption('roles', null, InputOption::VALUE_OPTIONAL, 'comma-delimited list of roles')
             ->addOption('password', null, InputOption::VALUE_NONE, 'Update password')
             ->addOption('username', null, InputOption::VALUE_OPTIONAL, 'username (defaults to email)')
-            ->addOption('userclass', null, InputOption::VALUE_OPTIONAL, 'user class (defaults to App\Entity\User)', 'App\\Entity\\User')
+            ->addOption('userclass', null, InputOption::VALUE_OPTIONAL, 'user class', 'App\\Entity\\User')
             ->addOption('extra', null, InputOption::VALUE_OPTIONAL, 'extra string passed to event dispatcher')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Change password/roles if account exists.');
     }
