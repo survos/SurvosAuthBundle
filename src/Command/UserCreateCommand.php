@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 #[AsCommand(
-    name: 'survos:user:create',
+    name: 'survos:user:create', description: 'create a new user with a password'
 )]
 class UserCreateCommand extends Command
 {
@@ -39,7 +39,6 @@ class UserCreateCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Creates a user record with email and password')
             ->addArgument('email', InputArgument::REQUIRED, 'email address of account')
             ->addArgument('password', InputArgument::OPTIONAL, 'Plain text password')
             ->addOption('roles', null, InputOption::VALUE_OPTIONAL, 'comma-delimited list of roles')
