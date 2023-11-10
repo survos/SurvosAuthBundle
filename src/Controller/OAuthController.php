@@ -131,6 +131,7 @@ class OAuthController extends AbstractController
         $redirect = $this->clientRegistry
             ->getClient($clientKey) // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect($scopes[$clientKey] ?? [], []);
+        dd($redirect, $scopes[$clientKey]);
         //        dump($redirect->getTargetUrl());
         $redirect->setTargetUrl(str_replace('http%3A', 'https%3A', $redirect->getTargetUrl()));
         //         throw new \Exception($redirect);
@@ -163,6 +164,7 @@ class OAuthController extends AbstractController
 
         $email = method_exists($oAuthUser, 'getEmail') ? $oAuthUser->getEmail() : null;
         assert($email);
+        dd($email, $oAuthUser, $identifier);
 
         try {
         } catch (\Exception $e) {

@@ -110,8 +110,8 @@ END
 
 
 composer req survos/auth-bundle
-bin/console survos:user:create admin@example.com password ROLE_ADMIN
-bin/console survos:user:create tacman@gmail.com tt
+bin/console survos:user:create admin@example.com password --roles=ROLE_ADMIN
+bin/console survos:user:create tacman@gmail.com password
 symfony open:local --path=/login
 
 symfony server:start -d
