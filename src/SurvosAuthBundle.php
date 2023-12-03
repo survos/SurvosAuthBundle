@@ -66,7 +66,7 @@ class SurvosAuthBundle extends AbstractBundle
 //            ->setArgument('$userProvider', new Reference('doctrine.orm.security.user.provider'))
             ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
             ->addTag('container.service_subscriber')
-            ->addTag('controller.service_argument')
+            ->addTag('controller.service_arguments')
             ->setPublic(true);
 
         if ($userProviderServiceId = $config['user_provider']) {
