@@ -10,6 +10,11 @@ providers:
     app_url: 'https://github.com/settings/applications/%s'
     user_apps: https://github.com/settings/applications
 
+  dropbox:
+    apps_url: https://www.dropbox.com/developers/apps
+    app_url: 'https://www.dropbox.com/developers/apps/info/%s'
+    user_apps: 'https://www.dropbox.com/account/connected_apps'
+
   google:
     apps_url: https://console.developers.google.com/apis/credentials
     user_apps: ''
