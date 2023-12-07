@@ -12,8 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-
+use Survos\AuthBundle\Twig\Components\OAuth;
 class SurvosAuthBundle extends AbstractBundle
 {
     protected string $extensionAlias = 'survos_auth';
@@ -34,6 +33,14 @@ class SurvosAuthBundle extends AbstractBundle
 //            ->setArgument('$provider', new Reference('security.user_providers'))
             ->setPublic(true)
         ;
+
+        foreach (
+            [
+                OAuth::class,
+            ] as $componentClass
+        ) {
+            $builder->register($componentClass)->setAutowired(true)->setAutoconfigured(true);
+        }
 
 
         $definition = $builder->autowire(Authenticator::class)

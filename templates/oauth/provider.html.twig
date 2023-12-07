@@ -6,105 +6,21 @@
     .input {width: 400px}
 </style>
 {% endblock  %}
-{% block javascripts %}
-    {{ parent() }}
-    {# the JS file lives at "public/bundles/acme/js/loader.js" #}
-    <script src="{{ asset('bundles/survos/base-/loader.js') }}"></script>
-
-    <script>
-        console.log('add click handler');
-        document.getElementById("copyButton").addEventListener("click", function() {
-            console.log('copy clicked');
-            copyToClipboard(document.getElementById("copyTarget"));
-        });
-
-        function copyToClipboard(elem) {
-            // create hidden text element, if it doesn't already exist
-            var targetId = "_hiddenCopyText_";
-            var isInput = elem.tagName === "INPUT" || elem.tagName === "TEXTAREA";
-            console.log('copying to clipboard');
-            var origSelectionStart, origSelectionEnd;
-            if (isInput) {
-                // can just use the original source element for the selection and copy
-                target = elem;
-                origSelectionStart = elem.selectionStart;
-                origSelectionEnd = elem.selectionEnd;
-            } else {
-                // must use a temporary form element for the selection and copy
-                target = document.getElementById(targetId);
-                if (!target) {
-                    var target = document.createElement("textarea");
-                    target.style.position = "absolute";
-                    target.style.left = "-9999px";
-                    target.style.top = "0";
-                    target.id = targetId;
-                    document.body.appendChild(target);
-                }
-                target.textContent = elem.textContent;
-            }
-            // select the content
-            var currentFocus = document.activeElement;
-            target.focus();
-            target.setSelectionRange(0, target.value.length);
-
-            // copy the selection
-            var succeed;
-            try {
-                succeed = document.execCommand("copy");
-            } catch(e) {
-                succeed = false;
-            }
-            // restore original focus
-            if (currentFocus && typeof currentFocus.focus === "function") {
-                currentFocus.focus();
-            }
-
-            if (isInput) {
-                // restore prior selection
-                elem.setSelectionRange(origSelectionStart, origSelectionEnd);
-            } else {
-                // clear temporary content
-                target.textContent = "";
-            }
-            return succeed;
-        }
-    function jQuerycopyToClipboard(element) {
-            let $ = window.$;
-        var $temp = $("<input>");
-        $("body").append($temp);
-        $temp.val($(element).text()).select();
-        document.execCommand("copy");
-        $temp.remove();
-    }
-    </script>
-{% endblock %}
 
 {% block title 'Provider ' ~ provider.type %}
 {% block body %}
 
-    <input type="text" id="copyTarget" value="{{ path('app_homepage') }}"> <button id="copyButton">Copy Homepage</button><br><br>
-    <input type="text" placeholder="Click here and press Ctrl-V to see clipboard contents">
-    <hr />
-    <p id="p1">P1: I am paragraph 1</p>
-    <p id="p2">P2: I am a second paragraph</p>
-    <p id="p3">composer req {{ provider.library }}</p>
-    Need copy.js
-    <input type="text" class="input-md" value="" />
-
-
-    <button onclick="jQuerycopyToClipboard('#p1')">Copy Homepage</button>
-    <button onclick="jQuerycopyToClipboard('#p2')">Copy Redirect</button>
-    <button onclick="jQuerycopyToClipboard('#p3')">Copy Composer</button>
-
-    <br/><br/><input type="text" placeholder="Paste here for test" />
-
+    {% for key, url in urls %}
+        <a target="_blank" class="btn btn-large btn-warning" href="{{ url }}">{{ key }}</a>
+    {% endfor %}
     {% if provider.clients|length %}
-    <h3>Configured Clients</h3>
     <ul class="list inline-list">
         {% for clientKey, client in provider.clients %}
+            {% if clientKey == providerKey %}
             <li><a href="{{ path('oauth_connect_start', {clientKey: clientKey}) }}" class="btn btn-primary">
                 Login With {{ clientKey }}</a>
             </li>
+            {% endif %}
         {% endfor %}
     </ul>
     {% endif %}
@@ -114,11 +30,12 @@
 
     {% if package %}
         <i class="far fa-check-square text-success"></i>
+        {{ package.name }}
         Installed.
     {% endif %}
 
-    <h3>Setup your environment (.env)</h3>
-    <textarea cols="80" rows="2">{% for var in provider.env_vars %}{{ var }}=~
+    <h3>Setup your environment (.env and .env.local for testing)</h3>
+    <textarea cols="80" rows="2">{% for var in provider.env_vars %}{{ var }}=
 {% endfor %}</textarea>
 
     <h3>Install and register the client in config/packages/knpu_oauth_clients.yaml</h3>

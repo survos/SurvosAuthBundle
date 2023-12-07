@@ -3,6 +3,7 @@
 namespace Survos\AuthBundle\Controller;
 
 # use App\Security\AppAuthenticator;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
@@ -10,8 +11,6 @@ use KnpU\OAuth2ClientBundle\Client\OAuth2ClientInterface;
 use KnpU\OAuth2ClientBundle\Client\Provider\DropboxClient;
 use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use League\OAuth2\Client\Provider\Github;
-use League\OAuth2\Client\Provider\GithubResourceOwner;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Stevenmaguire\OAuth2\Client\Provider\DropboxResourceOwner;
 use Survos\AuthBundle\Services\AuthService;
@@ -69,8 +68,13 @@ class OAuthController extends AbstractController
     #[Route("/provider/{providerKey}", name: "oauth_provider")]
     public function providerDetail(Request $request, $providerKey)
     {
+        // this really just returns the configured clients, not all of them.
+        $oauthClients = $this->baseService->getOauthClients();
+        $providerDetails = $oauthClients[$providerKey]??null;
+
         $bundles = $this->getParameter('kernel.bundles');
-        $provider = $this->baseService->getCombinedOauthData()[$providerKey];
+        $providers =  $this->baseService->getCombinedOauthData();
+        $provider = $providers[$providerKey];
 
         // look in composer.lock for the library
         $composer = $this->getParameter('kernel.project_dir') . '/composer.lock';
@@ -82,11 +86,23 @@ class OAuthController extends AbstractController
             return $provider['library'] === $package->name;
         });
 
+//        dd($provider);
+        $client = $provider['clients'][$providerKey]??null;
+//        dd($provider, $client, $package);
+        if ($providerDetails['provider']['app_url']??false) {
+            $providerDetails['provider']['app_url'] = sprintf($providerDetails['provider']['app_url'], $providerDetails['appId']); // ugly
+        }
+
+//        dd($providerDetails, $client, $providers[$providerKey]);
+//        dd($providers, $providers[$providerKey]);
         // throw new \Exception($provider['class'], class_exists($provider['class']));
 
         return $this->render('@SurvosAuth/oauth/provider.html.twig', [
             'provider' => $provider,
-            'package' => $package,
+            'providers' => $providers,
+            'providerKey' => $providerKey,
+            'urls' => $providerDetails['provider'],
+            'package' => $package ? array_values($package)[0]: null,
             'classExists' => class_exists($provider['class']),
         ]);
     }
@@ -94,6 +110,8 @@ class OAuthController extends AbstractController
     #[Route("/providers", name: "oauth_providers")]
     public function providers(Request $request)
     {
+        $providers =  $this->baseService->getCombinedOauthData();
+
         $oauthClients = $this->baseService->getOauthClients();
         $clientRegistry = $this->clientRegistry;
 
@@ -106,6 +124,8 @@ class OAuthController extends AbstractController
 
         return $this->render('@SurvosAuth/oauth/providers.html.twig', [
             'clients' => $clients,
+            'providers' => $providers,
+
             /*
             'clientKeys' =>  $clientRegistry->getEnabledClientKeys(),
             'clientRegistry' => $clientRegistry
@@ -132,9 +152,12 @@ class OAuthController extends AbstractController
             ];
         ;
 
-        $client = $this->clientRegistry
-            ->getClient($clientKey); // key used in config/packages/knpu_oauth2_client.yaml
+        $client = $this->clientRegistry->getClient($clientKey); // key used in config/packages/knpu_oauth2_client.yaml
+        return $client
+            ->redirect($scopes[$clientKey]??[],[]);
+
         $provider = $client->getOAuth2Provider();
+        if (false)
         if ($clientKey == 'dropbox') {
             if (!$code = $request->get('code')) {
                 $authUrl = $provider->getAuthorizationUrl();
@@ -206,11 +229,13 @@ class OAuthController extends AbstractController
         /** @var OAuth2ClientInterface $client */
         $client = $clientRegistry->getClient($clientKey);
 
-        dd($client);
+        $accessToken = $client->getAccessToken();
+        $oAuthUser = $client->fetchUserFromToken($accessToken);
 
         // the exact class depends on which provider you're using
         /** @var \League\OAuth2\Client\Provider\GenericProvider|DropboxResourceOwner $user */
-        $oAuthUser = $client->fetchUser();
+        // this fails on dropbox, not sure why!
+//        $oAuthUser = $client->fetchUser();
         //            $email = $oAuthUser->getEmail();
         $identifier = $oAuthUser->getId();
         // now presumably we need to link this up.
@@ -226,7 +251,6 @@ class OAuthController extends AbstractController
             // during dev
             dd($data, $oAuthUser, $identifier, $token);
         }
-
         } catch (\Exception $e) {
             $this->addFlash('error', $e->getMessage());
             foreach ($request->query->all() as $var => $value) {
@@ -263,6 +287,28 @@ class OAuthController extends AbstractController
             /** @var UserInterface&OAuthIdentifiersInterface $user */
             $user = $this->userProvider->loadUserByIdentifier($email);
         } catch (UserNotFoundException $exception) {
+
+            $user = (new User())
+                ->setEmail($email);
+            if (false) // auto-create the user, then redirect to profile, including setting a password
+            $user->setPassword(
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+            // do anything else you need here, like send an email
+
+
+            return $userAuthenticator->authenticateUser(
+                $user,
+                $authenticator,
+                $request
+            );
+
             return new RedirectResponse($this->generateUrl('app_register', [
                 'email' => $email,
                 'id' => $identifier,
@@ -301,14 +347,15 @@ class OAuthController extends AbstractController
         ]));
     }
 
+
     /**
      * After going to Github, you're redirected back here
      * because this is the "redirect_route" you configured
      * in config/packages/knpu_oauth2_client.yaml
      *
-     * @Route("/connect/check-guard", name="connect_check_with_guard")
-     * @deprecated
      */
+    #[Route('/social_login/{clientKey}', name: 'oauth_connect_start')]
+
     private function connectCheckAction(Request $request, UserProviderInterface $userProvider)
     {
         // ** if you want to *authenticate* the user, then

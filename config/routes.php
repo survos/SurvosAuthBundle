@@ -19,9 +19,11 @@ return function (RoutingConfigurator $routes) {
     $routes->add('oauth_provider', '/oauth_provider/{providerKey}')
         ->controller([OAuthController::class, 'providerDetail'])
     ;
+    // where the user is redirected to AFTER the provider has interacted with them.
     $routes->add('oauth_connect_check', '/connect/controller/{clientKey}')
         ->controller([OAuthController::class, 'connectCheckWithController'])
     ;
+    // this redirects the user to the provider
     $routes->add('oauth_connect_start', '/social_login/{clientKey}')
         ->controller([OAuthController::class, 'connectAction'])
     ;
