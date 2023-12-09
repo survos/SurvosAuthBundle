@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\Client\OAuth2ClientInterface;
 use KnpU\OAuth2ClientBundle\Security\Authenticator\OAuth2Authenticator;
+use Survos\AuthBundle\Traits\OAuthIdentifiersInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,9 +18,18 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
+/**
+ * Custom class to simplify loading the user from an oAuth provider
+ *
+ */
 class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypointInterface
 {
-    public function __construct(private ClientRegistry $clientRegistry, private EntityManagerInterface $entityManager, private RouterInterface $router)
+    public function __construct(private ClientRegistry $clientRegistry,
+                                private EntityManagerInterface $entityManager,
+                                private RouterInterface $router,
+    private string $userClass,
+    private string $newUserRedirectRoute,
+    )
     {
     }
 
@@ -31,29 +41,44 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypo
 
     public function authenticate(Request $request): Passport
     {
-        $client = $this->clientRegistry->getClient('github');
+        $clientKey = $request->get('clientKey');
+//        dd($request->query->all());
+        $client = $this->clientRegistry->getClient($clientKey);
         $accessToken = $this->fetchAccessToken($client);
 
+
         return new SelfValidatingPassport(
-            new UserBadge($accessToken->getToken(), function() use ($accessToken, $client) {
+            new UserBadge($accessToken->getToken(), function() use ($accessToken, $client, $clientKey) {
                 /** @var OAuth2ClientInterface $facebookUser */
-                $facebookUser = $client->fetchUserFromToken($accessToken);
+                $oAuthUser = $client->fetchUserFromToken($accessToken);
 
-                $email = $facebookUser->getEmail();
+                $identifier = $oAuthUser->getId();
+                $email = method_exists($oAuthUser, 'getEmail')
+                    ? $oAuthUser->getEmail()
+                    : $oAuthUser->toArray()['email']??null;
 
-                // 1) have they logged in with Facebook before? Easy!
-                $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-
-                if ($existingUser) {
-                    return $existingUser;
+                if (empty($email)) {
+                    dd($oAuthUser);
                 }
+                assert($email, "missing email");
+                // 1) have they logged in before?
+                $existingUser = $this->entityManager->getRepository($this->userClass)->findOneBy(['email' => $email]);
 
-                // 2) do we have a matching user by email?
-                $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
-                // 3) Maybe you just want to "register" them by creating
-                // a User object
-//                $user->setFacebookId($facebookUser->getId());
+
+                /** @var OAuthIdentifiersInterface $user */
+                if (!$existingUser) {
+                    $user = (new $this->userClass)
+                        ->setEmail($email);
+                } else {
+                    $user = $existingUser;
+                }
+                // now update the provider keys.
+                $user->setIdentifier($clientKey, [
+                    'accessToken' => json_decode(json_encode($accessToken)),
+                    'token' => $identifier, 'data' => $oAuthUser->toArray()]);
+//                dd($accessToken, $email, $oAuthUser->toArray(), $identifier, $user, $user->getIdentifiers());
+
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
 
@@ -64,8 +89,8 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypo
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        // change "app_homepage" to some route in your app
-        $targetUrl = $this->router->generate('app_homepage');
+        // @todo: only if new user, otherwise let it continue normally.
+        $targetUrl = $this->router->generate($this->newUserRedirectRoute);
 
         return new RedirectResponse($targetUrl);
 

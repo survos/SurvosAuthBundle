@@ -34,6 +34,7 @@ class SurvosAuthBundle extends AbstractBundle
             ->setPublic(true)
         ;
 
+        // the social media login buttons
         foreach (
             [
                 OAuth::class,
@@ -42,11 +43,15 @@ class SurvosAuthBundle extends AbstractBundle
             $builder->register($componentClass)->setAutowired(true)->setAutoconfigured(true);
         }
 
-
         $definition = $builder->autowire(Authenticator::class)
+            ->setAutowired(true)
+            ->setAutoconfigured(true)
             ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
             ->setArgument('$entityManager', new Reference('doctrine.orm.entity_manager'))
-            ->setArgument('$router', new Reference('router'));
+            ->setArgument('$router', new Reference('router'))
+            ->setArgument('$userClass', $config['user_class'])
+            ->setArgument('$newUserRedirectRoute', $config['new_user_redirect_route'])
+            ;
 
 
 
@@ -88,6 +93,7 @@ class SurvosAuthBundle extends AbstractBundle
         // since the configuration is short, we can add it here
         $definition->rootNode()
             ->children()
+            ->scalarNode('new_user_redirect_route')->defaultValue('oauth_profile')->end()
             ->scalarNode('user_provider')->defaultValue(null)->end()
             ->scalarNode('user_class')->defaultValue("App\\Entity\\User")->end()
             ->end();

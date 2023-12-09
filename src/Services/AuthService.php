@@ -35,6 +35,22 @@ class AuthService
         return $this->clientRegistry?->getEnabledClientKeys();
     }
 
+    public function getProviderUser(string $clientKey, string $accessToken)
+    {
+        if (!$client = $this->clientRegistry->getClient($clientKey)) {
+            assert(false, "bad client " . $clientKey);
+        }
+
+        // from session?
+        $accessToken = $client->getAccessToken();
+        $user = $client->fetchUserFromToken($accessToken);
+        dd($user);
+
+        $user = $this->userProvider->loadUserByIdentifier($email);
+
+
+    }
+
     // hack to get client id
     private function accessProtected($obj, $prop)
     {
@@ -62,18 +78,23 @@ class AuthService
 
         return array_combine($keys, array_map(function ($key) use ($providers) {
             $client = $this->clientRegistry->getClient($key);
-            $provider = $providers[$key];
+            $provider = $client->getOAuth2Provider();
             $clientId = $this->accessProtected($client->getOAuth2Provider(), 'clientId');
             $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
+//            if (!$type) {
+//                dd($provider, $client->getOAuth2Provider());
+//            }
+//            dd($type);
             try {
             } catch (\Exception $e) {
                 $client = false;
                 $provider = false;
             }
+//            dd($providers[$key]);
             // $extra = $this->accessProtected($provider, 'extrias');
             return [
                 'key' => $key,
-                'provider' => $provider,
+                'provider' => $providers[$key],
                 'client' => $client,
                 'appId' => $clientId,
                 // 'type' => $type

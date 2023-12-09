@@ -21,16 +21,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Guard\Authenticator\AbstractFormLoginAuthenticator;
-use Symfony\Component\Security\Guard\AuthenticatorInterface;
-use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
-use Symfony\Component\Security\Guard\PasswordAuthenticatedInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticatorManagerInterface;
-use Symfony\Component\Security\Http\Authentication\Provider\AuthenticationProviderInterface;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use Twig\Environment;
 
 class OAuthController extends AbstractController
@@ -43,9 +38,12 @@ class OAuthController extends AbstractController
         private RouterInterface $router,
         private ClientRegistry $clientRegistry,
         private UserProviderInterface $userProvider,
+        private UserAuthenticatorInterface $userAuthenticator,
         private EntityManagerInterface $entityManager,
+//        private AuthenticatorManagerInterface $authenticatorManager,
         private string $userClass,
     ) {
+//        dd($this->authenticatorManager);
         $this->entityManager = $this->registry->getManagerForClass($this->userClass);
         //        dd($this->clientRegistry);
         //        $this->clientRegistry = $this->baseService->getClientRegistry();
@@ -64,6 +62,15 @@ class OAuthController extends AbstractController
             'style' => $style,
         ]);
     }
+
+    #[Route("/profile", name: "oauth_profile")]
+    public function profile(Request $request)
+    {
+        return $this->render('@SurvosAuth/oauth/profile.html.twig', [
+            'user' => $this->getUser()
+            ]);
+    }
+
 
     #[Route("/provider/{providerKey}", name: "oauth_provider")]
     public function providerDetail(Request $request, $providerKey)
@@ -86,7 +93,7 @@ class OAuthController extends AbstractController
             return $provider['library'] === $package->name;
         });
 
-//        dd($provider);
+//        dd($provider, $providers, $providerDetails);
         $client = $provider['clients'][$providerKey]??null;
 //        dd($provider, $client, $package);
         if ($providerDetails['provider']['app_url']??false) {
@@ -288,6 +295,24 @@ class OAuthController extends AbstractController
             $user = $this->userProvider->loadUserByIdentifier($email);
         } catch (UserNotFoundException $exception) {
 
+//            // @todo: make this part of the auth bundle?
+//            return new RedirectResponse($this->generateUrl('app_register', [
+//                'email' => $email,
+//                'id' => $identifier,
+//                'client' => $clientKey,
+//            ]));
+
+//            dd($email, $identifier, $clientKey);
+            // set the email and token in session? The add a trait to the registration controller to populate user?
+            return new RedirectResponse($this->generateUrl('app_register', [
+                'email' => $email,
+                'id' => $identifier,
+                'state' => $request->get('state'),
+                'code' => $request->get('code'),
+                'accessToken' => $accessToken,
+                'client' => $clientKey,
+            ]));
+
             $user = (new User())
                 ->setEmail($email);
             if (false) // auto-create the user, then redirect to profile, including setting a password
@@ -303,17 +328,12 @@ class OAuthController extends AbstractController
             // do anything else you need here, like send an email
 
 
-            return $userAuthenticator->authenticateUser(
+            return $this->userAuthenticator->authenticateUser(
                 $user,
-                $authenticator,
+                $this->authenticator,
                 $request
             );
 
-            return new RedirectResponse($this->generateUrl('app_register', [
-                'email' => $email,
-                'id' => $identifier,
-                'client' => $clientKey,
-            ]));
         }
 
 //        if ($user = $em->getRepository(User::class)->findOneBy(['email' => $email])) {

@@ -13,6 +13,10 @@ return function (RoutingConfigurator $routes) {
         ->controller([OAuthController::class, 'auth'])
     ;
 
+    $routes->add('oauth_profile', '/profile')
+        ->controller([OAuthController::class, 'profile'])
+    ;
+
     $routes->add('oauth_providers', '/oauth_providers')
         ->controller([OAuthController::class, 'providers'])
     ;
@@ -27,8 +31,6 @@ return function (RoutingConfigurator $routes) {
     $routes->add('oauth_connect_start', '/social_login/{clientKey}')
         ->controller([OAuthController::class, 'connectAction'])
     ;
-
-
 
 };
 

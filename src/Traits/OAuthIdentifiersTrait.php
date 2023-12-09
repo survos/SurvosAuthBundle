@@ -23,7 +23,7 @@ trait OAuthIdentifiersTrait
         $this->identifiers = $identifiers;
         return $this;
     }
-    public function setIdentifier(string $clientKey, string $token): self
+    public function setIdentifier(string $clientKey, string|array $token): self
     {
         $this->identifiers[$clientKey] = $token;
         return $this;
