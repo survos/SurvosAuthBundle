@@ -2,8 +2,6 @@
 
 {% block body %}
 
-    {{ dump(user) }}
-
     {% for provider, details in user.identifiers %}
         <h1>{{ provider }}</h1>
     {% endfor %}
