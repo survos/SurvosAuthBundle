@@ -36,7 +36,7 @@ class UserCreateCommand extends Command
         parent::__construct($name);
     }
 
-    protected function configure()
+    protected function configure(): voidyar
     {
         $this
             ->addArgument('email', InputArgument::REQUIRED, 'email address of account')
