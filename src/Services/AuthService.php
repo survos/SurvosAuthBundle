@@ -32,7 +32,7 @@ class AuthService
 
     public function getOauthClientKeys(): ?array
     {
-        return $this->clientRegistry?->getEnabledClientKeys();
+        return $this->clientRegistry->getEnabledClientKeys();
     }
 
     public function getProviderUser(string $clientKey, string $accessToken)
