@@ -7,7 +7,7 @@ providers:
 
   github:
     apps_url: https://github.com/settings/developers
-    app_url: 'https://github.com/settings/applications/%s'
+    app_url: 'https://github.com/settings/applications/%s' #APP_ID, not client ID
     user_apps: https://github.com/settings/applications
 
   dropbox:
