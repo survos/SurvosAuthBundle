@@ -8,7 +8,6 @@ composer req survos/auth-bundle
 
 ```bash
 symfony new auth-demo --webapp && cd auth-demo
-sed -i 's/"php": "8.1.0"//' composer.json 
 composer config extra.symfony.allow-contrib true
 bin/console make:user --is-entity --identity-property-name=email --with-password User -n
 echo "1,AppAuthenticator,,," | sed "s/,/\n/g"  | bin/console make:auth
@@ -26,17 +25,16 @@ sed  -i "s|throw new|//throw new|" src/Security/AppAuthenticator.php
 
 cat > templates/app/index.html.twig <<END
 {% extends 'base.html.twig' %}
-
 {% block body %}
-{% if is_granted('IS_AUTHENTICATED_FULLY') %}
-    Welcome, {{ app.user.email }}! (roles: {{ app.user.roles|join(',') }})
-    <a href="{{ path('app_logout') }}">Logout</a>
+    <div>
+        <a href="{{ path('app_app') }}">Home</a>
+    </div>
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <a class="btn btn-primary" href="{{ path('app_logout') }}">Logout {{ app.user.email }} </a>
     {% else %}
-    Welcome, visitor!
-    <a href="{{ path('app_login') }}">Log In</a>
-    {{ include('@SurvosAuth/_social_media_login_buttons.html.twig') }}
-
-{% endif %}
+        <a class="btn btn-primary" href="{{ path('app_register') }}">Register</a>
+        <a class="btn btn-secondary" href="{{ path('app_login') }}">Login</a>
+    {% endif %}
 {% endblock %}
 END
 

@@ -10,7 +10,6 @@
 {% block title 'Provider ' ~ provider.type %}
 {% block body %}
 
-    {{ dump(urls) }}
     {% for key, url in urls %}
         <a target="_blank" class="btn btn-large btn-warning" href="{{ url }}">{{ key }}</a>
     {% endfor %}
