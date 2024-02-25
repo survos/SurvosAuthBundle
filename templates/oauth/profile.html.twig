@@ -1,7 +1,23 @@
-{% extends ['base.html.twig', "SurvosBaseBundle::base.html.twig"] %}
+{% extends ['base.html.twig', "SurvosAuthBundle::base.html.twig"] %}
 
 {% block body %}
 
+
+    User profile
+
+    {{ user.email }}
+    {{ user.creditName }}
+
+    https://github.com/settings/connections/applications/bbaa617f98c5e456c210
+
+    {% for key, x in user.identifiers %}
+        {{ dump(key, x) }}
+    {% endfor %}
+
+
+    <a href="{{ path('user_edit', user.rp) }}">Edit my profile</a>
+
+    {{ include('user/_delete_form.html.twig') }}
     {% for provider, details in user.identifiers %}
         <h1>{{ provider }}</h1>
     {% endfor %}

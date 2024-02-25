@@ -9,6 +9,7 @@ use Survos\AuthBundle\Services\AuthService;
 use Survos\AuthBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -27,6 +28,7 @@ class SurvosAuthBundle extends AbstractBundle
         $builder->autowire($serviceId, AuthService::class)
             ->setArgument('$userClass', $config['user_class'])
             ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))
+            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE))
             ->setArgument('$config', $config)
 //            ->setArgument('$entityManager', new Reference('doctrine.orm.entity_manager'))
 //            ->setArgument('$registry', new Reference('doctrine'))
@@ -74,6 +76,7 @@ class SurvosAuthBundle extends AbstractBundle
             ->setArgument('$registry', new Reference('doctrine'))
             ->setArgument('$router', new Reference('router'))
             ->setArgument('$userClass', $config['user_class'])
+            ->setArgument('$logger', new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE))
             ->setArgument('$entityManager', new Reference('doctrine.orm.entity_manager'))
 //            ->setArgument('$userProvider', new Reference('doctrine.orm.security.user.provider'))
             ->setArgument('$clientRegistry', new Reference('knpu.oauth2.registry'))

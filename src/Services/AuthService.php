@@ -4,6 +4,7 @@ namespace Survos\AuthBundle\Services;
 
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\DependencyInjection\ProviderFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Yaml\Yaml;
 
@@ -13,6 +14,8 @@ class AuthService
         private string $userClass,
         private array $config,
         private ClientRegistry $clientRegistry,
+        private ?LoggerInterface $logger=null
+
         //        private ProviderFactory $provider
     ) {
         //        $this->clientRegistry = $clientRegistry;
@@ -44,7 +47,7 @@ class AuthService
         // from session?
         $accessToken = $client->getAccessToken();
         $user = $client->fetchUserFromToken($accessToken);
-        dd($user);
+        return $user;
 
         $user = $this->userProvider->loadUserByIdentifier($email);
 
@@ -80,17 +83,16 @@ class AuthService
             $client = $this->clientRegistry->getClient($key);
             $provider = $client->getOAuth2Provider();
             $clientId = $this->accessProtected($client->getOAuth2Provider(), 'clientId');
-            $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
-//            if (!$type) {
-//                dd($provider, $client->getOAuth2Provider());
-//            }
-//            dd($type);
             try {
+            $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
+            if (!$type) {
+                $this->logger->error("Missing property 'type' in $key");
+                dd($provider, $client->getOAuth2Provider());
+            }
             } catch (\Exception $e) {
                 $client = false;
                 $provider = false;
             }
-//            dd($providers[$key]);
             // $extra = $this->accessProtected($provider, 'extrias');
             return [
                 'key' => $key,

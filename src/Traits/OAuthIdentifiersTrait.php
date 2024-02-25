@@ -18,6 +18,12 @@ trait OAuthIdentifiersTrait
         return $this->identifiers;
     }
 
+    public function getIdentifierData(string $clientKey): ?array
+    {
+        return $this->getIdentifiers()[$clientKey]??null;
+
+    }
+
     public function setIdentifiers(?array $identifiers): self
     {
         $this->identifiers = $identifiers;

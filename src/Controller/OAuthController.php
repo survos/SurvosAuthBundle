@@ -12,6 +12,7 @@ use KnpU\OAuth2ClientBundle\Client\Provider\DropboxClient;
 use KnpU\OAuth2ClientBundle\Security\Exception\IdentityProviderAuthenticationException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+use Psr\Log\LoggerInterface;
 use Stevenmaguire\OAuth2\Client\Provider\DropboxResourceOwner;
 use Survos\AuthBundle\Services\AuthService;
 use Survos\AuthBundle\Traits\OAuthIdentifiersInterface;
@@ -43,10 +44,9 @@ class OAuthController extends AbstractController
         private EntityManagerInterface $entityManager,
 //        private AuthenticatorManagerInterface $authenticatorManager,
         private string $userClass,
+        private ?LoggerInterface $logger=null
     ) {
-//        dd($this->authenticatorManager);
         $this->entityManager = $this->registry->getManagerForClass($this->userClass);
-        //        dd($this->clientRegistry);
         //        $this->clientRegistry = $this->baseService->getClientRegistry();
     }
 
@@ -73,7 +73,6 @@ class OAuthController extends AbstractController
             ]);
     }
 
-
     #[Route("/provider/{providerKey}", name: "oauth_provider")]
     public function providerDetail(Request $request, $providerKey)
     {
@@ -95,22 +94,18 @@ class OAuthController extends AbstractController
             return $provider['library'] === $package->name;
         });
 
-//        dd($provider, $providers, $providerDetails);
         $client = $provider['clients'][$providerKey]??null;
-//        dd($provider, $client, $package);
         if ($providerDetails['provider']['app_url']??false) {
             $providerDetails['provider']['app_url'] = sprintf($providerDetails['provider']['app_url'], $providerDetails['appId']); // ugly
         }
 
-//        dd($providerDetails, $client, $providers[$providerKey]);
-//        dd($providers, $providers[$providerKey]);
         // throw new \Exception($provider['class'], class_exists($provider['class']));
 
         return $this->render('@SurvosAuth/oauth/provider.html.twig', [
             'provider' => $provider,
             'providers' => $providers,
             'providerKey' => $providerKey,
-            'urls' => $providerDetails['provider'],
+            'urls' => $providerDetails['provider']??[],
             'package' => $package ? array_values($package)[0]: null,
             'classExists' => class_exists($provider['class']),
         ]);
@@ -162,15 +157,20 @@ class OAuthController extends AbstractController
         ;
 
         $client = $this->clientRegistry->getClient($clientKey); // key used in config/packages/knpu_oauth2_client.yaml
-//        $redirect = $client
-//            ->redirect($scopes[$clientKey]??[],[]);
-//        $x = parse_str(parse_url($redirect->getTargetUrl(), PHP_URL_QUERY), $array);
-//        $redirectUri = $array['redirect_uri']??'';
-//        if (!str_starts_with($redirectUri, 'https')) {
+        $redirect = $client
+            ->redirect($scopes[$clientKey]??[],[]);
+        $x = parse_str(parse_url($redirect->getTargetUrl(), PHP_URL_QUERY), $array);
+        $redirectUri = $array['redirect_uri']??'';
+        $redirectUri = str_replace('http%3A', 'https%3A', $redirectUri);
+        if (!str_starts_with($redirectUri, 'https')) {
+            $this->logger->error("$redirectUri must start with https");
 //            throw new \Exception("The redirect must begin with https " . $redirectUri);
-//        }
+        }
+        $this->logger->error('redirectUri:' . $redirectUri);
 
-        $redirect = $client->redirect($scopes[$clientKey] ?? [], ['state' => $client->getOAuth2Provider()->getState()]);
+        $redirect = $client->redirect($scopes[$clientKey] ?? [], [
+            'state' => $client->getOAuth2Provider()->getState()
+        ]);
         //        dump($redirect->getTargetUrl());
         if (!str_starts_with($redirect->getTargetUrl(), 'https')) {
 //            $redirect->setTargetUrl()
@@ -194,7 +194,6 @@ class OAuthController extends AbstractController
                 return $redirect;
 
                 $_SESSION['oauth2state'] = $provider->getState();
-//                dd(authBundleRedirect: $redirect->getTargetUrl(), providerRedirectUrl: $authUrl, providerState: $provider->getState(), session: $_SESSION);
 
                 header('Location: '.$authUrl);
                 exit;
@@ -250,11 +249,11 @@ class OAuthController extends AbstractController
         Request $request,
         string $clientKey
     ) {
+
         if ($request->get('error')) {
             dd($request->query->all());
         }
         $clientRegistry = $this->clientRegistry;
-
 
         /** @var OAuth2ClientInterface $client */
         $client = $clientRegistry->getClient($clientKey);
@@ -279,7 +278,8 @@ class OAuthController extends AbstractController
             : $data['email']??null;
         if (!$email) {
             // during dev
-            dd($data, $oAuthUser, $identifier, $token);
+            $this->logger->error("No email for $clientKey");
+//            dd($data, $oAuthUser, $identifier, $token);
         }
         } catch (\Exception $e) {
             $this->addFlash('error', $e->getMessage());
@@ -301,6 +301,7 @@ class OAuthController extends AbstractController
             $this->addFlash('error', $e->getMessage());
         }
 
+
         if ($error = $request->get('error')) {
             $this->addFlash('error', $error);
             $this->addFlash('error', $request->get('error_description'));
@@ -316,6 +317,7 @@ class OAuthController extends AbstractController
         try {
             /** @var UserInterface&OAuthIdentifiersInterface $user */
             $user = $this->userProvider->loadUserByIdentifier($email);
+            dd($email, $user);
         } catch (UserNotFoundException $exception) {
 
 //            // @todo: make this part of the auth bundle?
