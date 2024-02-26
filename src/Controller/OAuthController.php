@@ -19,6 +19,7 @@ use Survos\AuthBundle\Traits\OAuthIdentifiersInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\RouterInterface;
@@ -247,7 +248,10 @@ class OAuthController extends AbstractController
      */
     public function connectCheckWithController(
         Request $request,
-        string $clientKey
+        string $clientKey,
+        #[MapQueryParameter] ?string $error = null, // github at least
+        #[MapQueryParameter] ?string $errorDescription = null, // github at least
+
     ) {
 
         if ($request->get('error')) {

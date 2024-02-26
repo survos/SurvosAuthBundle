@@ -86,8 +86,8 @@ class AuthService
             try {
             $type = $this->accessProtected($client->getOAuth2Provider(), 'type');
             if (!$type) {
-                $this->logger->error("Missing property 'type' in $key");
-                dd($provider, $client->getOAuth2Provider());
+                $this->logger->error($msg = "Missing property 'type' in $key " );
+//                dd($msg, $provider, $client->getOAuth2Provider());
             }
             } catch (\Exception $e) {
                 $client = false;

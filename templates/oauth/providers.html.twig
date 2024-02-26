@@ -12,12 +12,11 @@
                     <code>{{ provider.library }}</code>
                 </button>
             </h2>
-            <div id="collapse{{ key }}" class="accordion-collapse collapse {{ loop.first ? 'show' : 'collapsed' }}"
+            <div id="collapse{{ key }}" class="accordion-collapse collapse {{ true or loop.first ? 'show' : 'collapsed' }}"
                  aria-labelledby="heading{{ key }}" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                     <a class="btn btn-primary btn-sm" href="{{ path('oauth_provider', {providerKey:key}) }}">
                         Configure {{ key }}</a>
-
                     <strong>This is the {{ key }}.</strong>
                     {% if loop.first %}
                         <code>{{ provider.library }}</code>

@@ -111,10 +111,13 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypo
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        $message = strtr($exception->getMessageKey(), $exception->getMessageData());
+        $params = $request->query->all();
+        $formattedJson = json_encode($params, JSON_PRETTY_PRINT);
+        $message = strtr($exception->getMessageKey(), $exception->getMessageData()) . "\n" . $formattedJson;
+//        dd($request->query->all());
 //        dd($request, $exception, $message);
 
-        return new Response($message, Response::HTTP_FORBIDDEN);
+        return new Response($message, Response::HTTP_FORBIDDEN, ['headers' => ['Content-Type' => 'text/plain']]);
     }
 
     /**
