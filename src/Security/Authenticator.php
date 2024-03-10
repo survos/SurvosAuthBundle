@@ -20,6 +20,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 /**
  * Custom class to simplify loading the user from an oAuth provider
@@ -27,6 +28,8 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  */
 class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypointInterface
 {
+    use TargetPathTrait;
+
     public function __construct(private ClientRegistry         $clientRegistry,
                                 private EntityManagerInterface $entityManager,
                                 private RouterInterface        $router,
@@ -98,6 +101,12 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntrypo
         // @todo: only if new user, otherwise let it continue normally.
 //        dd($token, $firewallName, $request);
         // if we wanted to hide the userid, we could set it in a session
+        // only if new!
+        $user = $token->getUser();
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+
         $targetUrl = $this->router->generate($this->newUserRedirectRoute, [
             'userId' => $token->getUser()->getUserIdentifier(),
             'clientKey' => $clientKey
