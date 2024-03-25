@@ -321,7 +321,7 @@ class OAuthController extends AbstractController
         try {
             /** @var UserInterface&OAuthIdentifiersInterface $user */
             $user = $this->userProvider->loadUserByIdentifier($email);
-            dd($email, $user);
+//            dd($email, $user);
         } catch (UserNotFoundException $exception) {
 
 //            // @todo: make this part of the auth bundle?

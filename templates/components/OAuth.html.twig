@@ -1,7 +1,6 @@
 <div{{ attributes }}>
 
 
-
     {% if app.environment == 'dev' %}
         <a class="btn btn-warning" href="{{ path('oauth_providers') }}"><i class="fas fa-cogs"></i> Configure OAuth</a>
     {% endif %}
@@ -10,6 +9,7 @@
     {% for clientKey in this.clientKeys %}
         <button>
             <a xxclass="btn btn-lg" href="{{ path('oauth_connect_start', {clientKey: clientKey}) }}"><i class="fab fa-{{clientKey}}"></i>{{ clientKey|title }}</a>
+            {{ clientKey }}
         </button>
     {% endfor %}
 

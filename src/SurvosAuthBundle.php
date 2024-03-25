@@ -42,7 +42,9 @@ class SurvosAuthBundle extends AbstractBundle
                 OAuth::class,
             ] as $componentClass
         ) {
-            $builder->register($componentClass)->setAutowired(true)->setAutoconfigured(true);
+            $builder->register($componentClass)
+                ->setAutowired(true)
+                ->setAutoconfigured(true);
         }
 
         $definition = $builder->autowire(Authenticator::class)
