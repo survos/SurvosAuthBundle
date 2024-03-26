@@ -8,6 +8,11 @@ use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 #[AsTwigComponent('OAuth', '@SurvosAuth/components/OAuth.html.twig')]
 final class OAuth
 {
+    public string $buttonClass='button';
+
+    // <i class="bi bi-github"></i>
+    public string $iconPrefix='bi bi-'; // hack
+
     public function __construct(private AuthService $authService)
     {
 //        $this->clientKeys = $this->authService->getOauthClientKeys();

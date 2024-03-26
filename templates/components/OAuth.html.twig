@@ -7,9 +7,10 @@
     <hr />
 
     {% for clientKey in this.clientKeys %}
-        <button>
-            <a xxclass="btn btn-lg" href="{{ path('oauth_connect_start', {clientKey: clientKey}) }}"><i class="fab fa-{{clientKey}}"></i>{{ clientKey|title }}</a>
-            {{ clientKey }}
+        <button class="{{ this.buttonClass }}">
+            <a
+               href="{{ path('oauth_connect_start', {clientKey: clientKey}) }}">
+                <i class="{{ this.iconPrefix}}{{clientKey}}"></i>{{ clientKey|title }}</a>
         </button>
     {% endfor %}
 
