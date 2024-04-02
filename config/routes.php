@@ -9,9 +9,9 @@ resource: '@SurvosAuthBundle/config/routes.php'
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Survos\AuthBundle\Controller\OAuthController;
 return function (RoutingConfigurator $routes) {
-    $routes->add('survos_auth', '/auth')
-        ->controller([OAuthController::class, 'auth'])
-    ;
+//    $routes->add('survos_auth', '/auth')
+//        ->controller([OAuthController::class, 'auth'])
+//    ;
 
     $routes->add('oauth_profile', '/profile')
         ->controller([OAuthController::class, 'profile'])
