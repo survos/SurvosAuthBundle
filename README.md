@@ -10,7 +10,7 @@ composer req survos/auth-bundle
 symfony new auth-demo --webapp && cd auth-demo
 composer config extra.symfony.allow-contrib true
 bin/console make:user --is-entity --identity-property-name=email --with-password User -n
-echo "1,AppAuthenticator,,," | sed "s/,/\n/g"  | bin/console make:auth
+echo "1,AppAuthenticator,,," | sed "s/,/\n/g"  | bin/console make:security
 echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.local
 bin/console doctrine:schema:update --force --complete
 symfony server:start -d
@@ -78,7 +78,7 @@ bin/console make:entity User
 sed  -i "s/class User/class User extend FosBase/"  src/Entity/User.php
 
 # bin/console make:user --is-entity --identity-property-name=email --with-password User -n
-echo "1,AppAuthenticator,,," | sed "s/,/\n/g"  | bin/console make:auth
+echo "1,AppAuthenticator,,," | sed "s/,/\n/g"  | bin/console make:security
 echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.local
 bin/console doctrine:schema:update --force --complete
 symfony server:start -d
