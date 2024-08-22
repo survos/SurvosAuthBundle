@@ -4,6 +4,7 @@ namespace Survos\AuthBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Survos\AuthBundle\Event\UserCreatedEvent;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -17,6 +18,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 #[AsCommand(
@@ -29,6 +31,7 @@ class UserCreateCommand extends Command
         private UserProviderInterface $userProvider,
         private EventDispatcherInterface $eventDispatcher,
         private EntityManagerInterface $entityManager,
+        private CacheInterface $cache,
         //                                private AuthService                 $baseService,
         //                                private  $baseBundleConfig,
         string $name = null
@@ -47,6 +50,12 @@ class UserCreateCommand extends Command
             ->addOption('userclass', null, InputOption::VALUE_OPTIONAL, 'user class', 'App\\Entity\\User')
             ->addOption('extra', null, InputOption::VALUE_OPTIONAL, 'extra string passed to event dispatcher')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Change password/roles if account exists.');
+    }
+
+    private function hashPassword(string $plainTextPassword, $user): string
+    {
+        return $this->cache->get($plainTextPassword, fn(CacheItem $item) => $this->passwordEncoder->hashPassword($user, $plainTextPassword));
+
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -100,7 +109,7 @@ class UserCreateCommand extends Command
 
         if ($plainTextPassword = $input->getArgument('password')) {
             $user
-                ->setPassword($this->passwordEncoder->hashPassword($user, $plainTextPassword));
+                ->setPassword($this->hashPassword($plainTextPassword, $user));
         }
 
         $this->eventDispatcher->dispatch(new UserCreatedEvent($user, $input->getOption('extra')));
