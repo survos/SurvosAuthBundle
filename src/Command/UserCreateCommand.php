@@ -34,7 +34,7 @@ class UserCreateCommand extends Command
         private CacheInterface $cache,
         //                                private AuthService                 $baseService,
         //                                private  $baseBundleConfig,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
     }
