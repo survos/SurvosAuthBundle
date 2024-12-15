@@ -6,9 +6,13 @@
 
     {{ user.email }}
 
-{#    {% for key, x in user.identifiers %}#}
-{#        {{ dump(key, x) }}#}
-{#    {% endfor %}#}
+    {# this could also be components or include files, etc twig:Dropbox or component(key, {data}) #}
+    {% for key, authData in user.identifiers %}
+        <h3>{{ key }}</h3>
+        <div>
+            {{ block(key) }}
+        </div>
+    {% endfor %}
 
 
 {#    <a href="{{ path('user_edit', user.rp) }}">Edit my profile</a>#}
@@ -18,4 +22,10 @@
 {#        <h1>{{ provider }}</h1>#}
 {#    {% endfor %}#}
 
+{% endblock %}
+
+
+{% block dropbox %}
+    <img src="{{ authData.data.profile_photo_url }}" alt="profile photo" />
+    {{ authData.data.account_type|json_encode }}
 {% endblock %}
