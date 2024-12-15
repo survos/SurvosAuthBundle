@@ -7,7 +7,7 @@
     {{ user.email }}
 
     {# this could also be components or include files, etc twig:Dropbox or component(key, {data}) #}
-    {% for key, authData in user.identifiers %}
+    {% for key, authData in user.identifiers|default([]) %}
         <h3>{{ key }}</h3>
         <div>
             {{ block(key) }}
