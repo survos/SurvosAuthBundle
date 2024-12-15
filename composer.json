@@ -22,7 +22,7 @@
         "symfony/security-bundle": "^6.4 || ^7.1",
         "symfony/yaml": "^6.4 || ^7.1",
         "twig/twig": "^3.10",
-        "survos/installer": "^1.5"
+        "survos/installer": "^1.5 || ^2.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",
