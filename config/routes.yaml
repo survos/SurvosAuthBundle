@@ -1,0 +1,5 @@
+survos_auth:
+  type: attribute
+  resource:
+    path: '@SurvosAuthBundle/src/Controller/'
+    namespace: Survos\AuthBundle\Controller

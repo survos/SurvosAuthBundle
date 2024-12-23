@@ -8,11 +8,21 @@ resource: '@SurvosAuthBundle/config/routes.php'
 */
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Survos\AuthBundle\Controller\OAuthController;
+
+
 return function (RoutingConfigurator $routes) {
 //    $routes->add('survos_auth', '/auth')
 //        ->controller([OAuthController::class, 'auth'])
 //    ;
-
+    // deprecated, use routes.yaml instead
+    throw new \Exception("
+# config/routes/survos_auth.yaml    
+survos_auth:
+  type: attribute
+  resource:
+    path: '@SurvosAuthBundle/src/Controller/'
+    namespace: Survos\AuthBundle\Controller
+");
     $routes->add('oauth_profile', '/profile')
         ->controller([OAuthController::class, 'profile'])
     ;

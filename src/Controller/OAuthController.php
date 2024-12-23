@@ -65,7 +65,7 @@ class OAuthController extends AbstractController
         ]);
     }
 
-    #[Route("/profile", name: "oauth_profile")]
+    #[Route("/profile", name: "oauth_profile", methods: [Request::METHOD_GET])]
     #[IsGranted('IS_AUTHENTICATED')]
     public function profile(Request $request)
     {
@@ -74,7 +74,7 @@ class OAuthController extends AbstractController
             ]);
     }
 
-    #[Route("/provider/{providerKey}", name: "oauth_provider")]
+    #[Route("/provider/{providerKey}", name: "oauth_provider", methods: [Request::METHOD_GET])]
     public function providerDetail(Request $request, $providerKey)
     {
         // this really just returns the configured clients, not all of them.
@@ -112,7 +112,7 @@ class OAuthController extends AbstractController
         ]);
     }
 
-    #[Route("/providers", name: "oauth_providers")]
+    #[Route("/providers", name: "oauth_providers", methods: [Request::METHOD_GET])]
     public function providers(Request $request)
     {
         $providers =  $this->baseService->getCombinedOauthData();
@@ -141,8 +141,8 @@ class OAuthController extends AbstractController
     /**
      * Link to this controller to start the "connect" process
      *
-     * @Route("/social_login/{clientKey}", name="oauth_connect_start")
      */
+    #[Route("/social_login/{clientKey}", name: "oauth_connect_start", methods: [Request::METHOD_GET])]
     public function connectAction(Request $request, string $clientKey)
     {
         // scopes are client-specific, need to put them in survos_oauth or base or (ideally) in knp's config
@@ -244,14 +244,14 @@ class OAuthController extends AbstractController
      * This is where the user is redirected to after logging into the OAuth server,
      * see the "redirect_route" in config/packages/knpu_oauth2_client.yaml
      *
-     * @Route("/connect/controller/{clientKey}", name="oauth_connect_check")
      */
+
+    #[Route('/connect/controller/{clientKey}', 'oauth_connect_check', methods: [Request::METHOD_GET])]
     public function connectCheckWithController(
         Request $request,
         string $clientKey,
         #[MapQueryParameter] ?string $error = null, // github at least
         #[MapQueryParameter] ?string $errorDescription = null, // github at least
-
     ) {
 
         if ($request->get('error')) {
@@ -403,8 +403,7 @@ class OAuthController extends AbstractController
      * in config/packages/knpu_oauth2_client.yaml
      *
      */
-    #[Route('/social_login/{clientKey}', name: 'oauth_connect_start')]
-
+    #[Route('/social_login/{clientKey}', name: 'oauth_connect_check', methods: [Request::METHOD_GET])]
     private function connectCheckAction(Request $request, UserProviderInterface $userProvider)
     {
         // ** if you want to *authenticate* the user, then
