@@ -160,7 +160,9 @@ class OAuthController extends AbstractController
         $client = $this->clientRegistry->getClient($clientKey); // key used in config/packages/knpu_oauth2_client.yaml
         $redirect = $client
             ->redirect($scopes[$clientKey]??[],[]);
-        $x = parse_str(parse_url($redirect->getTargetUrl(), PHP_URL_QUERY), $array);
+        if ($targetUrl = $redirect->getTargetUrl()) {
+            parse_str((string)parse_url($targetUrl, PHP_URL_QUERY), $array);
+        }
         $redirectUri = $array['redirect_uri']??'';
         $redirectUri = str_replace('http%3A', 'https%3A', $redirectUri);
         if (!str_starts_with($redirectUri, 'https')) {

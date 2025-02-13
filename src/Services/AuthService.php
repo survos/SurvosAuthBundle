@@ -41,15 +41,16 @@ class AuthService
     public function getProviderUser(string $clientKey, string $accessToken)
     {
         if (!$client = $this->clientRegistry->getClient($clientKey)) {
-            assert(false, "bad client " . $clientKey);
+            $this->logger->error("bad client " . $clientKey);
         }
+        assert($client, "bad client " . $clientKey);
 
         // from session?
         $accessToken = $client->getAccessToken();
         $user = $client->fetchUserFromToken($accessToken);
         return $user;
 
-        $user = $this->userProvider->loadUserByIdentifier($email);
+//        $user = $this->userProvider->loadUserByIdentifier($email);
 
 
     }
