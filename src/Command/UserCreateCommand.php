@@ -82,7 +82,13 @@ class UserCreateCommand extends Command
             $action = 'created';
             $userClass = ($input->getOption('userclass'));
             $user = new $userClass();
-            $user->setEmail($email);
+            // quite hackish!
+
+            if ($input->getOption('username')) {
+                $user->setUsername($email);
+            } else {
+                $user->setEmail($email);
+            }
             //            if ($input->getOption('username')) {
             //                $user->setUsername($username);
             //            }

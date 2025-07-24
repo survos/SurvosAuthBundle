@@ -9,7 +9,8 @@ composer req survos/auth-bundle
 wget -O - https://raw.githubusercontent.com/<username>/<project>/<branch>/<path>/<file> | bash
 
 ```bash
-symfony new auth-demo --webapp && cd auth-demo
+ciine rec auth-demo.cast 
+symfony new auth-demo --webapp --version=next && cd auth-demo
 echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" > .env.local
 
 # this is just Symfony
@@ -26,6 +27,9 @@ echo ",,no,admin@test.com,AuthDemoBot,yes,app_homepage,no" | sed "s/,/\n/g"  | b
 bin/console doctrine:schema:update --force
 symfony server:start -d
 
+echo "import '@picocss/pico';\n" >> assets/app.js
+echo "import '@picocss/pico/css/pico.min.css';\n" >> assets/app.js
+
 
 cat > templates/app/index.html.twig <<END
 {% extends 'base.html.twig' %}
@@ -33,6 +37,7 @@ cat > templates/app/index.html.twig <<END
     <div>
         <a href="{{ path('app_app') }}">Home</a>
     </div>
+
     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
         <a class="btn btn-primary" href="{{ path('app_logout') }}">Logout {{ app.user.email }} </a>
     {% else %}
